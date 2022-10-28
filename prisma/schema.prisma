@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model users {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  email       String?
+  password    String
+  username    String
+  name        String
+  admin       Boolean?  @default(false)
+  status      Boolean?  @default(true)
+  createdDate DateTime? @default(now())
+  updatedDate DateTime? @updatedAt
+  createdBy   String?
+  updatedBy   String?
+}
+
+model services {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  serviceName String
+  price       Float?
+
+  status      Boolean?  @default(true)
+  createdDate DateTime? @default(now())
+  updatedDate DateTime? @updatedAt
+  createdBy   String?
+  updatedBy   String?
+}
+
+model transactions {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  serviceId       String
+  serviceName     String
+  price           Float?
+  quantity        Int      @default(1)
+  discount        Float?
+  cash            Float?
+  debt            Float?
+  transactionDate DateTime @default(now())
+  userId          String
+  username        String
+  fullName        String
+  customerName    String
+
+  status      Boolean?  @default(true)
+  createdDate DateTime? @default(now())
+  updatedDate DateTime? @updatedAt
+  createdBy   String?
+  updatedBy   String?
+}
+
+model kpis {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  userId   String
+  username String
+  name     String
+  month    Int?
+  year     Int?
+  kpi      Float?
+
+  status      Boolean?  @default(true)
+  createdDate DateTime? @default(now())
+  updatedDate DateTime? @updatedAt
+  createdBy   String?
+  updatedBy   String?
+}
