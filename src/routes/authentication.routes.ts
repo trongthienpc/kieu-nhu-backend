@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import {
   checkUserExist,
   checkUsernameExist,
+  generateRefreshToken,
   tokenRefresh,
   userLogin,
   userRegister,
@@ -25,8 +26,20 @@ authenticationRouter.post(
   async (req: Request, res: Response, next: any) => {
     let body = req.body;
     let response = await userLogin(body);
-    console.log(`Authentication.routes | login : ${JSON.stringify(response)}`);
-    res.json(response);
+    if (response.success)
+      res.cookie("refreshToken", response.refreshToken, {
+        httpOnly: true,
+        secure: false, // change this to true if production
+        sameSite: "strict",
+        path: "/",
+      });
+    console.log(`Authentication.routes | login`);
+    const { refreshToken, ...responseData } = response;
+    return res.json({
+      success: responseData.success,
+      data: responseData.data,
+      message: responseData.message,
+    });
   }
 );
 
@@ -42,6 +55,23 @@ authenticationRouter.get(
 );
 
 // refresh token
-authenticationRouter.post("/refresh-token", tokenRefresh);
+authenticationRouter.post(
+  "/refresh",
+  async (req: Request, res: Response, next: any) => {
+    console.log(`authentication.router | tokenRefresh | ${req?.originalUrl}`);
 
+    // let token = req?.headers["authorization"];
+    // take refresh token from user
+    let re = req.cookies["refreshToken"];
+    console.log(re);
+  }
+);
+
+// @route POST api/auth/logout
+// desc logout
+
+authenticationRouter.post("/logout", async (req, res) => {
+  res.clearCookie("refreshToken");
+  res.status(200).json({ success: true, message: "Logged out successfully!" });
+});
 export default authenticationRouter;

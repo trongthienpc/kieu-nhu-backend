@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ERROR = exports.DELETE_SUCCESS = exports.UPDATE_SUCCESS = exports.POST_SUCCESS = exports.GET_SUCCESS = exports.REGISTERED_FAILED = exports.REGISTERED_SUCCESS = exports.EMAIL_EXIST = exports.USERNAME_EXIST = void 0;
+exports.USERNAME_EXIST = "The username is already in use by another!";
+exports.EMAIL_EXIST = "The email is already in use by another!";
+exports.REGISTERED_SUCCESS = "The user was successfully registered";
+exports.REGISTERED_FAILED = "The user registered failed";
+exports.GET_SUCCESS = "Get data successfully";
+exports.POST_SUCCESS = "Create new data successfully";
+exports.UPDATE_SUCCESS = "Update data successfully";
+exports.DELETE_SUCCESS = "Delete data successfully";
+exports.ERROR = "Oops! Something went wrong!";

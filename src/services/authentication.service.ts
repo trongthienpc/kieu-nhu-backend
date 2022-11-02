@@ -8,8 +8,10 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
+import prisma from "../../lib/prisma";
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
+// const prisma = new PrismaClient({ log: ["query", "info", "warn"] });
 
 // check [type] is exist
 const checkUserExist = async (query: any) => {
@@ -25,9 +27,9 @@ const checkUserExist = async (query: any) => {
     });
 
     return !userObject
-      ? { status: true, message: `This ${queryType} is not taken` }
+      ? { success: true, message: `This ${queryType} is not taken` }
       : {
-          status: false,
+          success: false,
           message: messages[queryType as keyof typeof messages],
         };
   } catch (error: any) {
@@ -67,18 +69,18 @@ const userRegister = async (user: any) => {
     console.log(`Authentication | user registration`);
     if (!user?.username || !user?.password)
       return {
-        status: false,
+        success: false,
         message: "Please fill up all the required information",
       };
 
     // check email already exist
     const emailStatus = await checkEmailExist(user?.email);
-    if (emailStatus != true) return { status: false, message: EMAIL_EXIST };
+    if (emailStatus != true) return { success: false, message: EMAIL_EXIST };
 
     // check username already exist
     const usernameStatus = await checkUsernameExist(user?.username);
     if (usernameStatus != true)
-      return { status: false, message: USERNAME_EXIST };
+      return { success: false, message: USERNAME_EXIST };
 
     const passwordHash = await bcrypt.hash(user?.password, 10);
     let userObject = {
@@ -104,12 +106,12 @@ const userRegister = async (user: any) => {
         }
       );
       return {
-        status: true,
+        success: true,
         message: REGISTERED_SUCCESS,
         data: accessToken,
       };
     } else {
-      return { status: false, message: REGISTERED_FAILED };
+      return { success: false, message: REGISTERED_FAILED };
     }
   } catch (error: any) {
     console.log(error?.message);
@@ -120,7 +122,7 @@ const userRegister = async (user: any) => {
     error?.code === 11000 && error?.keyPattern?.email
       ? (errorMessage = "Email already exist")
       : null;
-    return { status: false, message: errorMessage, data: error?.toString() };
+    return { success: false, message: errorMessage, data: error?.toString() };
   }
 };
 
@@ -128,7 +130,7 @@ const userRegister = async (user: any) => {
 const userLogin = async (user: any) => {
   try {
     if (!user?.username || !user.password)
-      return { status: false, message: "Please fill up all the fields" };
+      return { success: false, message: "Please fill up all the fields" };
 
     const userObject = await prisma.users.findFirst({
       where: {
@@ -141,35 +143,58 @@ const userLogin = async (user: any) => {
         userObject.password
       );
       if (isPasswordVerified) {
-        let token = jwt.sign(
-          {
-            username: userObject?.username,
-            email: userObject?.email,
+        const { password, ...userInfo } = userObject;
+        let accessToken = generateAccessToken(userObject.username);
+
+        const refreshToken = generateRefreshToken(userObject.username);
+        await prisma.users.update({
+          where: {
+            id: userObject.id,
           },
-          process.env.TOKEN_SECRET || "",
-          { expiresIn: "10m" }
-        );
-        return { status: true, message: "User login successful", data: token };
+          data: {
+            refreshToken: refreshToken,
+          },
+        });
+        return {
+          success: true,
+          message: "User login successful",
+          data: { ...userInfo, accessToken },
+          refreshToken: refreshToken,
+        };
       } else {
         return {
-          status: false,
+          success: false,
           message: "Incorrect password",
         };
       }
     } else {
       return {
-        status: false,
+        success: false,
         message: "No user found",
       };
     }
   } catch (error: any) {
     console.log(error);
     return {
-      status: false,
+      success: false,
       message: "User login failed",
       error: error?.toString(),
     };
   }
+};
+
+// @desc generate new access token
+// @param user id
+export const generateAccessToken = (username: string) => {
+  return jwt.sign({ username: username }, process.env.TOKEN_SECRET || "", {
+    expiresIn: "10s",
+  });
+};
+
+export const generateRefreshToken = (username: string) => {
+  return jwt.sign({ username: username }, process.env.TOKEN_SECRET || "", {
+    expiresIn: "30d",
+  });
 };
 
 // check token validity
@@ -180,20 +205,22 @@ const tokenVerification = async (req: any, res: Response, next: any) => {
       req?.originalUrl?.includes("/login") ||
       req?.originalUrl?.includes("/user-exist") ||
       req?.originalUrl?.includes("/register") ||
-      req?.originalUrl?.includes("/refresh-token")
+      req?.originalUrl?.includes("/refresh") ||
+      req?.originalUrl?.includes("/logout")
     )
       return next();
 
-    let token = req?.headers["authorization"];
+    let token = req?.headers.token;
+    // console.log(token);
     if (token && token.startsWith("Bearer ")) {
-      token = token.slice(7, token.length);
+      const accessToken = token.split(" ")[1];
       jwt.verify(
-        token,
+        accessToken,
         process.env.TOKEN_SECRET || "",
         (error: any, decoded: any) => {
           if (error) {
             return res.status(401).json({
-              status: false,
+              success: false,
               message: error?.name ? error?.name : "Invalid Token",
               error: `Invalid token | ${error?.message}`,
             });
@@ -205,74 +232,107 @@ const tokenVerification = async (req: any, res: Response, next: any) => {
       );
     } else {
       return res.status(401).json({
-        status: false,
+        success: false,
         message: "Token is missing",
         error: "Token is missing",
       });
     }
   } catch (error: any) {
     return res.status(401).json({
-      status: false,
+      success: false,
       message: error?.message ? error?.message : "Authentication failed",
       error: `Authentication failed | ${error?.message}`,
     });
   }
 };
 
+function greeting() {
+  console.log("Hello World");
+}
+
 // refresh token validity
 const tokenRefresh = async (req: Request, res: any) => {
   console.log(`authentication.service | tokenRefresh | ${req?.originalUrl}`);
   try {
-    let token = req?.headers["authorization"];
-    console.log(token);
-    if (token && token.startsWith("Bearer ")) {
-      token = token.slice(7, token?.length);
-      jwt.verify(
-        token,
-        process.env.TOKEN_SECRET || "",
-        {
-          ignoreExpiration: true,
+    // let token = req?.headers["authorization"];
+    // take refresh token from user
+    let refreshToken = req.cookies?.refreshToken;
+    // console.log(req);
+    if (refreshToken) {
+      // token = token.slice(7, token?.length);
+
+      const foundUser = await prisma.users.findFirst({
+        where: {
+          refreshToken: refreshToken,
         },
-        async (error: any, decoded: any) => {
-          if (error) {
-            return res.status(401).json({
-              status: false,
-              message: error?.name ? error?.name : "Invalid token",
-              error: `Invalid token | ${error?.message}`,
-            });
-          } else {
-            if (decoded?.username && decoded?.email) {
-              let newToken = jwt.sign(
-                {
-                  username: decoded?.username,
-                  email: decoded?.email,
-                },
-                process.env.TOKEN_SECRET || "",
-                { expiresIn: "10m" }
-              );
-              return res.json({
-                status: true,
-                message: "Token refreshed successfully",
-                data: newToken,
-              });
-            } else {
+      });
+      console.log(foundUser);
+      // setTimeout(greeting, 3000);
+      if (!foundUser) {
+        return res
+          .status(401)
+          .json("user not found, may be refresh token is not valid");
+      } else {
+        jwt.verify(
+          refreshToken,
+          process.env.TOKEN_SECRET || "",
+          {
+            ignoreExpiration: true,
+          },
+          async (error: any, decoded: any) => {
+            if (error) {
               return res.status(401).json({
-                status: false,
-                message: error?.name ? error?.name : "Invalid Token",
+                success: false,
+                message: error?.name ? error?.name : "Invalid token",
                 error: `Invalid token | ${error?.message}`,
               });
+            } else {
+              console.log(decoded);
+              if (decoded?.username) {
+                const newAccessToken = generateAccessToken(foundUser?.username);
+                const newRefreshToken = generateRefreshToken(
+                  foundUser?.username
+                );
+
+                const updateData = await prisma.users.update({
+                  where: {
+                    username: foundUser.username,
+                  },
+                  data: {
+                    refreshToken: newRefreshToken,
+                  },
+                });
+
+                res.cookie("refreshToken", newRefreshToken, {
+                  httpOnly: true,
+                  secure: false, // change this to true if production
+                  sameSite: "strict",
+                });
+                return res.json({
+                  success: true,
+                  message: "Token refreshed successfully",
+                  accessToken: newAccessToken,
+                });
+              } else {
+                return res.status(401).json({
+                  success: false,
+                  message: error?.name ? error?.name : "Invalid Token",
+                  error: `Invalid token | ${error?.message}`,
+                });
+              }
             }
           }
-        }
-      );
+        );
+      }
     } else {
-      return res
-        .status(401)
-        .json({ status: false, message: "Token not found or token not valid" });
+      return res.status(401).json({
+        success: false,
+        message: "Token not found or token not valid",
+      });
     }
   } catch (error: any) {
     return res.status(404).json({
-      status: false,
+      success: false,
       message: error?.name ? error?.name : "Token refresh failed",
       error: `Token refresh failed | ${error?.message}`,
     });

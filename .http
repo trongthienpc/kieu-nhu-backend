@@ -1,9 +1,10 @@
-POST http://localhost:8080/api/register
+POST http://localhost:8080/api/auth/register
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InBjLTAxNDE2IiwiZW1haWwiOiIwMTQxNkBnbWFpbC5jb20iLCJpYXQiOjE2NjY5MzkwMDgsImV4cCI6MTY2NjkzOTYwOH0.ZxqbCZRGczLHhSiID75cpMWpsda6780iaL15f5bLORE
 Content-Type: application/json
 
 {
-  "username": "PC-01416",
-  "email": "01416@gmail.com",
+  "username": "PC-0111",
+  "email": "0111@gmail.com",
   "password": "123456",
   "name": "Tran Trong Thien"
 }

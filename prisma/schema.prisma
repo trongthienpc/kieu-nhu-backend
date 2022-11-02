@@ -11,12 +11,25 @@ datasource db {
 }
 
 model users {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  email       String?
-  password    String
-  username    String
-  name        String
-  admin       Boolean?  @default(false)
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  email        String?
+  password     String
+  username     String    @unique
+  name         String
+  admin        Boolean?  @default(false)
+  refreshToken String?
+  status       Boolean?  @default(true)
+  createdDate  DateTime? @default(now())
+  updatedDate  DateTime? @updatedAt
+  createdBy    String?
+  updatedBy    String?
+}
+
+model services {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  serviceName String
+  price       Float?
+
   status      Boolean?  @default(true)
   createdDate DateTime? @default(now())
   updatedDate DateTime? @updatedAt
@@ -24,10 +37,9 @@ model users {
   updatedBy   String?
 }
 
-model services {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  serviceName String
-  price       Float?
+model serviceGroups {
+  value String @id @default(auto()) @map("_id") @db.ObjectId
+  label String
 
   status      Boolean?  @default(true)
   createdDate DateTime? @default(now())
