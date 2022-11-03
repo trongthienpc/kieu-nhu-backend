@@ -8,6 +8,12 @@ import {
 } from "../services/serviceGroup.service";
 
 var serviceGroupRouter = express.Router();
+// var log = console.log;
+// console.log = function () {
+//   log.apply(console);
+//   // Print the stack trace
+//   console.trace();
+// };
 
 // get all service groups
 serviceGroupRouter.get("/", async (req: Request, res: Response) => {

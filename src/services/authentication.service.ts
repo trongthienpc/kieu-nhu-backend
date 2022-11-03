@@ -193,7 +193,7 @@ export const generateAccessToken = (username: string) => {
 
 export const generateRefreshToken = (username: string) => {
   return jwt.sign({ username: username }, process.env.TOKEN_SECRET || "", {
-    expiresIn: "30d",
+    expiresIn: "1d",
   });
 };
 
@@ -246,12 +246,8 @@ const tokenVerification = async (req: any, res: Response, next: any) => {
   }
 };
 
-function greeting() {
-  console.log("Hello World");
-}
-
 // refresh token validity
-const tokenRefresh = async (req: Request, res: any) => {
+const tokenRefresh = async (req: Request, res: Response) => {
   console.log(`authentication.service | tokenRefresh | ${req?.originalUrl}`);
   try {
     // let token = req?.headers["authorization"];
@@ -287,27 +283,10 @@ const tokenRefresh = async (req: Request, res: any) => {
                 error: `Invalid token | ${error?.message}`,
               });
             } else {
-              console.log(decoded);
+              // console.log(decoded);
               if (decoded?.username) {
                 const newAccessToken = generateAccessToken(foundUser?.username);
-                const newRefreshToken = generateRefreshToken(
-                  foundUser?.username
-                );
 
-                const updateData = await prisma.users.update({
-                  where: {
-                    username: foundUser.username,
-                  },
-                  data: {
-                    refreshToken: newRefreshToken,
-                  },
-                });
-
-                res.cookie("refreshToken", newRefreshToken, {
-                  httpOnly: true,
-                  secure: false, // change this to true if production
-                  sameSite: "strict",
-                });
                 return res.json({
                   success: true,
                   message: "Token refreshed successfully",

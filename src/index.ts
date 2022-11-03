@@ -2,6 +2,7 @@ import express, { Express, Request, Response } from "express";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import cors from "cors";
+import morgan from "morgan";
 const app: Express = express();
 import indexRouter from "./routes/index.routes";
 import authenticationRouter from "./routes/authentication.routes";
@@ -12,14 +13,16 @@ import transactionRouter from "./routes/transaction.routes";
 import serviceGroupRouter from "./routes/serviceGroup.routes";
 dotenv.config();
 
+app.use(cookieParser());
+
 const corsConfig = {
   credentials: true,
-  // origin: [
-  //   "http://localhost:3000",
-  //   "http://localhost:3001",
-  //   "http://192.168.4.89:3000",
-  // ],
-  origin: true,
+  origin: [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://192.168.4.89:3000",
+  ],
+  // origin: true,
 };
 app.use(cors(corsConfig));
 app.options("*", cors(corsConfig));
@@ -30,9 +33,7 @@ app.use(express.static("./src/static"));
 
 // verify logged in user
 app.use("*", tokenVerification);
-
-app.use(cookieParser());
-
+app.use(morgan("dev"));
 // routes
 app.use("/", indexRouter);
 

@@ -20,7 +20,7 @@ model users {
   refreshToken String?
   status       Boolean?  @default(true)
   createdDate  DateTime? @default(now())
-  updatedDate  DateTime? @updatedAt
+  // updatedDate  DateTime? @updatedAt
   createdBy    String?
   updatedBy    String?
 }
@@ -38,8 +38,9 @@ model services {
 }
 
 model serviceGroups {
-  value String @id @default(auto()) @map("_id") @db.ObjectId
-  label String
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  value String @default(uuid()) @db.String
+  label String @unique
 
   status      Boolean?  @default(true)
   createdDate DateTime? @default(now())

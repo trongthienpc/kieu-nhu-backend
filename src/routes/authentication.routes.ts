@@ -1,7 +1,10 @@
 import express, { Request, Response } from "express";
+import prisma from "../../lib/prisma";
+import jwt from "jsonwebtoken";
 import {
   checkUserExist,
   checkUsernameExist,
+  generateAccessToken,
   generateRefreshToken,
   tokenRefresh,
   userLogin,
@@ -55,17 +58,7 @@ authenticationRouter.get(
 );
 
 // refresh token
-authenticationRouter.post(
-  "/refresh",
-  async (req: Request, res: Response, next: any) => {
-    console.log(`authentication.router | tokenRefresh | ${req?.originalUrl}`);
-
-    // let token = req?.headers["authorization"];
-    // take refresh token from user
-    let re = req.cookies["refreshToken"];
-    console.log(re);
-  }
-);
+authenticationRouter.post("/refresh", tokenRefresh);
 
 // @route POST api/auth/logout
 // desc logout

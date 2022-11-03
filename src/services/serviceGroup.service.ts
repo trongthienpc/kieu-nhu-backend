@@ -17,7 +17,7 @@ const getAllServiceGroups = async () => {
         status: true,
       },
     });
-
+    console.log(res);
     return {
       success: true,
       message: GET_SUCCESS,
@@ -34,11 +34,11 @@ const getAllServiceGroups = async () => {
 };
 
 // get a service group
-const getOneServiceGroup = async (value: any) => {
+const getOneServiceGroup = async (id: any) => {
   try {
     const res = await prisma.serviceGroups.findUnique({
       where: {
-        value: value,
+        id: id,
       },
     });
 
@@ -60,6 +60,16 @@ const getOneServiceGroup = async (value: any) => {
 // create a new service group
 const createServiceGroup = async (data: any) => {
   try {
+    const oldEntity = await prisma.serviceGroups.findFirst({
+      where: {
+        label: data.label,
+      },
+    });
+
+    // check if the service group exists
+    if (oldEntity)
+      return { success: false, message: "Tên nhóm dịch vụ đã tồn tại" };
+
     const res = await prisma.serviceGroups.create({
       data: data,
     });
@@ -84,7 +94,7 @@ const updateServiceGroup = async (data: any) => {
   try {
     const res = await prisma.serviceGroups.update({
       where: {
-        value: data?.value,
+        id: data?.id,
       },
       data: data,
     });
@@ -103,11 +113,11 @@ const updateServiceGroup = async (data: any) => {
 };
 
 // delete a service group
-const deleteServiceGroup = async (value: any) => {
+const deleteServiceGroup = async (id: any) => {
   try {
     const res = await prisma.serviceGroups.delete({
       where: {
-        value: value,
+        id: id,
       },
     });
     return {
