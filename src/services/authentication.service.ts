@@ -225,6 +225,7 @@ const tokenVerification = async (req: any, res: Response, next: any) => {
               error: `Invalid token | ${error?.message}`,
             });
           } else {
+            console.log(decoded);
             req.username = decoded?.username;
             next();
           }
@@ -262,7 +263,7 @@ const tokenRefresh = async (req: Request, res: Response) => {
           refreshToken: refreshToken,
         },
       });
-      console.log(foundUser);
+      // console.log(foundUser);
       // setTimeout(greeting, 3000);
       if (!foundUser) {
         return res
@@ -318,6 +319,17 @@ const tokenRefresh = async (req: Request, res: Response) => {
   }
 };
 
+const checkAdminRole = async (username: string) => {
+  let isAdmin = false;
+  const user = await prisma.users.findFirst({
+    where: {
+      username: username,
+    },
+  });
+  if (user) isAdmin = user.admin || false;
+  return isAdmin;
+};
+
 export {
   tokenRefresh,
   tokenVerification,
@@ -326,4 +338,5 @@ export {
   checkEmailExist,
   checkUsernameExist,
   checkUserExist,
+  checkAdminRole,
 };

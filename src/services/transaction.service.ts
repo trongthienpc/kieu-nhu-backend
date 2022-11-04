@@ -33,6 +33,31 @@ const getAllTransactions = async () => {
   }
 };
 
+// get all transactions by username
+const getAllTransactionsByUsername = async (username: string) => {
+  try {
+    const res = await prisma.transactions.findMany({
+      where: {
+        status: true,
+        username: username,
+      },
+    });
+
+    return {
+      success: true,
+      message: GET_SUCCESS,
+      data: res,
+    };
+  } catch (error: any) {
+    console.log(error?.message);
+    return {
+      success: false,
+      message: ERROR,
+      data: error?.message,
+    };
+  }
+};
+
 // get a transactions
 const getOneTransactions = async (id: any) => {
   try {
@@ -81,12 +106,14 @@ const createTransaction = async (data: any) => {
 
 // update a transaction
 const updateTransaction = async (data: any) => {
+  const { id, ...newObject } = data;
+  console.log(data);
   try {
     const res = await prisma.transactions.update({
       where: {
-        id: data.id,
+        id: id,
       },
-      data: data,
+      data: newObject,
     });
     return {
       success: true,
@@ -126,6 +153,7 @@ const deleteTransaction = async (data: any) => {
 
 export {
   getAllTransactions,
+  getAllTransactionsByUsername,
   getOneTransactions,
   createTransaction,
   updateTransaction,

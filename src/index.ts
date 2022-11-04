@@ -21,6 +21,7 @@ const corsConfig = {
     "http://localhost:3000",
     "http://localhost:3001",
     "http://192.168.4.89:3000",
+    "http://192.168.1.8:3000",
   ],
   // origin: true,
 };

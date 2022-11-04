@@ -1,8 +1,10 @@
 import express, { Request, Response } from "express";
+import { checkAdminRole } from "../services/authentication.service";
 import {
   createTransaction,
   deleteTransaction,
   getAllTransactions,
+  getAllTransactionsByUsername,
   getOneTransactions,
   updateTransaction,
 } from "../services/transaction.service";
@@ -10,13 +12,16 @@ import {
 var transactionRouter = express.Router();
 
 // get all transactions
-transactionRouter.get("/", async (req, res) => {
+transactionRouter.get("/", async (req: any, res) => {
   // page configs
   let p = req.query?.page || 1;
   let pz = req.query?.pageSize || 5;
   let page = parseInt(p.toString());
   const pageSize = parseInt(pz.toString());
-  const result = await getAllTransactions();
+  const isAdmin = await checkAdminRole(req.username);
+  let result;
+  if (isAdmin) result = await getAllTransactions();
+  else result = await getAllTransactionsByUsername(req.username);
 
   if (result && result.data?.length > 0) {
     let totalPages = Math.ceil(result.data.length / pageSize);
@@ -58,7 +63,7 @@ transactionRouter.post("/", async (req, res) => {
 });
 
 // update a transaction
-transactionRouter.put(":id", async (req, res) => {
+transactionRouter.put("/:id", async (req, res) => {
   const id = req.params.id;
   const data = req.body;
 
@@ -71,7 +76,7 @@ transactionRouter.put(":id", async (req, res) => {
 });
 
 // delete a transaction
-transactionRouter.delete(":id", async (req, res) => {
+transactionRouter.delete("/:id", async (req, res) => {
   const id = req.params.id;
   const result = await deleteTransaction(id);
   if (result) return res.status(200).json(result);
