@@ -13,11 +13,11 @@ const prisma = new PrismaClient();
 const getAllServiceGroups = async () => {
   try {
     const res = await prisma.serviceGroups.findMany({
-      where: {
-        status: true,
-      },
+      // where: {
+      //   status: true,
+      // },
     });
-    console.log(res);
+    // console.log(res);
     return {
       success: true,
       message: GET_SUCCESS,
@@ -92,18 +92,22 @@ const createServiceGroup = async (data: any) => {
 // update a service group
 const updateServiceGroup = async (data: any) => {
   try {
+    const { id, ...newObject } = data;
     const res = await prisma.serviceGroups.update({
       where: {
-        id: data?.id,
+        id: id,
       },
-      data: data,
+      data: newObject,
     });
-    return {
-      success: false,
-      message: UPDATE_SUCCESS,
-      data: res,
-    };
+    console.log(res);
+    if (res)
+      return {
+        success: true,
+        message: UPDATE_SUCCESS,
+        data: res,
+      };
   } catch (error: any) {
+    console.log(error);
     return {
       success: false,
       message: ERROR,

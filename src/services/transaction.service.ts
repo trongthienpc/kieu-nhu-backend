@@ -89,7 +89,7 @@ const updateTransaction = async (data: any) => {
       data: data,
     });
     return {
-      success: false,
+      success: true,
       message: UPDATE_SUCCESS,
       data: res,
     };

@@ -59,6 +59,7 @@ const getOneServices = async (id: any) => {
 
 // create a new service
 const createService = async (data: any) => {
+  console.log(data);
   try {
     const res = await prisma.services.create({
       data: data,
@@ -82,14 +83,15 @@ const createService = async (data: any) => {
 // update a service
 const updateService = async (data: any) => {
   try {
+    const { id, ...newObject } = data;
     const res = await prisma.services.update({
       where: {
-        id: data.id,
+        id: id,
       },
-      data: data,
+      data: newObject,
     });
     return {
-      success: false,
+      success: true,
       message: UPDATE_SUCCESS,
       data: res,
     };

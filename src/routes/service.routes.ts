@@ -49,18 +49,19 @@ serviceRouter.get("/:id", async (req, res) => {
 // create a new service
 serviceRouter.post("/", async (req, res) => {
   const data = req.body;
-  console.log(data);
   const result = await createService(data);
+  console.log(result);
   if (result) return res.status(200).json(result);
 });
 
 // update a service
-serviceRouter.put(":id", async (req, res) => {
+serviceRouter.put("/:id", async (req, res) => {
   const id = req.params.id;
   const data = req.body;
-
+  console.log(data);
   if (data !== null && id !== null) {
     const result = await updateService(data);
+    console.log(result);
     if (result) {
       return res.status(200).json(result);
     }

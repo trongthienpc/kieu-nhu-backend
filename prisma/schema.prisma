@@ -26,9 +26,11 @@ model users {
 }
 
 model services {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  serviceName String
-  price       Float?
+  id               String @id @default(auto()) @map("_id") @db.ObjectId
+  serviceName      String
+  price            Float?
+  serviceGroupId   String
+  serviceGroupName String
 
   status      Boolean?  @default(true)
   createdDate DateTime? @default(now())

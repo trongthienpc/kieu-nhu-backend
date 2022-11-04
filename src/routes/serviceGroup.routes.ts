@@ -27,7 +27,7 @@ serviceGroupRouter.get("/", async (req: Request, res: Response) => {
   if (result && result.data?.length > 0) {
     let totalPages = Math.ceil(result.data.length / pageSize);
     if (page > totalPages) page = totalPages;
-    console.log(totalPages);
+    // console.log(totalPages);
     return res.status(200).json({
       success: true,
       message: "Get service groups successfully!",
@@ -61,10 +61,10 @@ serviceGroupRouter.post("/", async (req, res) => {
 });
 
 // update a service group
-serviceGroupRouter.put(":id", async (req, res) => {
+serviceGroupRouter.put("/:id", async (req, res) => {
   const id = req.params.id;
   const data = req.body;
-
+  console.log(data);
   if (data !== null && id !== null) {
     const result = await updateServiceGroup(data);
     if (result) {
