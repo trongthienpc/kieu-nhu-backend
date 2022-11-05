@@ -80,7 +80,7 @@ model kpis {
   name     String
   month    Int?
   year     Int?
-  kpi      Float?
+  target   Float?
 
   status      Boolean?  @default(true)
   createdDate DateTime? @default(now())

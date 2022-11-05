@@ -8,4 +8,6 @@ export const POST_SUCCESS = "Create new data successfully";
 export const UPDATE_SUCCESS = "Update data successfully";
 export const DELETE_SUCCESS = "Delete data successfully";
 
+export const KPI_EXIST = "Kpi is already exists";
+
 export const ERROR = "Oops! Something went wrong!";

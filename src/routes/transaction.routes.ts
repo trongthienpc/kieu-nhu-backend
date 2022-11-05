@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import { checkAdminRole } from "../services/authentication.service";
 import {
+  analyzeTransaction,
   createTransaction,
   deleteTransaction,
   getAllTransactions,
@@ -8,6 +9,7 @@ import {
   getOneTransactions,
   updateTransaction,
 } from "../services/transaction.service";
+import { getFirstDayOfMonth, getLastDayOfMonth } from "../utils/dateTimeFn";
 
 var transactionRouter = express.Router();
 
@@ -18,10 +20,11 @@ transactionRouter.get("/", async (req: any, res) => {
   let pz = req.query?.pageSize || 5;
   let page = parseInt(p.toString());
   const pageSize = parseInt(pz.toString());
+  let search = req.query?.search || "";
   const isAdmin = await checkAdminRole(req.username);
   let result;
-  if (isAdmin) result = await getAllTransactions();
-  else result = await getAllTransactionsByUsername(req.username);
+  if (isAdmin) result = await getAllTransactions(search);
+  else result = await getAllTransactionsByUsername(req.username, search);
 
   if (result && result.data?.length > 0) {
     let totalPages = Math.ceil(result.data.length / pageSize);
@@ -45,6 +48,30 @@ transactionRouter.get("/", async (req: any, res) => {
       transactions: [],
     });
   }
+});
+
+// analyze transactions by user
+transactionRouter.get("/statistics", async (req, res) => {
+  let date = new Date();
+  let month =
+    req.query.month === "undefined"
+      ? date.getMonth() + 1
+      : req.query.month || date.getMonth() + 1;
+  let year =
+    req.query?.year === "undefined"
+      ? date.getFullYear()
+      : req.query.year || date.getFullYear();
+
+  var firstDate = getFirstDayOfMonth(
+    parseInt(month.toString()),
+    parseInt(year.toString())
+  );
+  var lastDate = getLastDayOfMonth(
+    parseInt(month.toString()),
+    parseInt(year.toString())
+  );
+  const result = await analyzeTransaction(firstDate, lastDate);
+  if (result) return res.status(200).json(result);
 });
 
 // get a transaction

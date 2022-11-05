@@ -33,3 +33,29 @@ export const getUser = async (username: any) => {
     };
   }
 };
+
+export const getAllUsers = async () => {
+  try {
+    const response = await prisma.users.findMany({});
+    if (response) {
+      return {
+        success: true,
+        message: "Get users successfully!",
+        data: response,
+      };
+    } else {
+      return {
+        success: false,
+        message: "Have error ...!",
+        data: null,
+      };
+    }
+  } catch (error: any) {
+    console.log(error);
+    return {
+      success: false,
+      message: "Oops! Something went wrong!",
+      error: error?.message,
+    };
+  }
+};

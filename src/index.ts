@@ -11,6 +11,7 @@ import userRouter from "./routes/user.routes";
 import serviceRouter from "./routes/service.routes";
 import transactionRouter from "./routes/transaction.routes";
 import serviceGroupRouter from "./routes/serviceGroup.routes";
+import kpiRouter from "./routes/kpi.routes";
 dotenv.config();
 
 app.use(cookieParser());
@@ -43,6 +44,7 @@ app.use("/api/user", userRouter);
 app.use("/api/service", serviceRouter);
 app.use("/api/service-group", serviceGroupRouter);
 app.use("/api/transaction", transactionRouter);
+app.use("/api/kpi", kpiRouter);
 
 // catch 404 and forward to error handler
 // app.use(function (req, res, next) {
