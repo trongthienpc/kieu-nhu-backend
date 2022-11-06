@@ -26,10 +26,12 @@ authenticationRouter.post(
     let response = await userLogin(body);
     if (response.success) {
       console.log(response);
-      res.cookie("refreshToken", response.refreshToken, {
+      res.status(200).cookie("refreshToken", response.refreshToken, {
         httpOnly: true,
-        secure: false, // change this to true if production
+        secure: true, // change this to true if production
         sameSite: "strict",
+        domain:
+          process.env.NODE_ENV === "development" ? ".localhost" : ".vercel.com",
         path: "/",
       });
     }

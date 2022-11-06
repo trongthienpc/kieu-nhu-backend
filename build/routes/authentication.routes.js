@@ -80,10 +80,11 @@ authenticationRouter.post("/login", function (req, res, next) { return __awaiter
                 response = _a.sent();
                 if (response.success) {
                     console.log(response);
-                    res.cookie("refreshToken", response.refreshToken, {
+                    res.status(200).cookie("refreshToken", response.refreshToken, {
                         httpOnly: true,
-                        secure: false,
+                        secure: true,
                         sameSite: "strict",
+                        domain: process.env.NODE_ENV === "development" ? ".localhost" : ".vercel.com",
                         path: "/",
                     });
                 }

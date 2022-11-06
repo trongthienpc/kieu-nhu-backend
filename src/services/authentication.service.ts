@@ -249,18 +249,19 @@ const tokenVerification = async (req: any, res: Response, next: any) => {
 
 // refresh token validity
 const tokenRefresh = async (req: Request, res: Response) => {
+  const username = req.body;
   console.log(`authentication.service | tokenRefresh | ${req?.originalUrl}`);
   try {
     // let token = req?.headers["authorization"];
     // take refresh token from user
-    let refreshToken = req.cookies?.refreshToken;
+
     // console.log(req);
-    if (refreshToken) {
+    if (username) {
       // token = token.slice(7, token?.length);
 
       const foundUser = await prisma.users.findFirst({
         where: {
-          refreshToken: refreshToken,
+          username: username,
         },
       });
       // console.log(foundUser);
@@ -270,6 +271,7 @@ const tokenRefresh = async (req: Request, res: Response) => {
           .status(401)
           .json("user not found, may be refresh token is not valid");
       } else {
+        const refreshToken = foundUser?.refreshToken || "";
         jwt.verify(
           refreshToken,
           process.env.TOKEN_SECRET || "",

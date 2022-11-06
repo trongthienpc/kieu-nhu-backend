@@ -341,24 +341,23 @@ var tokenVerification = function (req, res, next) { return __awaiter(void 0, voi
 exports.tokenVerification = tokenVerification;
 // refresh token validity
 var tokenRefresh = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var refreshToken, foundUser_1, error_4;
-    var _a;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var username, foundUser_1, refreshToken, error_4;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0:
+                username = req.body;
                 console.log("authentication.service | tokenRefresh | ".concat(req === null || req === void 0 ? void 0 : req.originalUrl));
-                _b.label = 1;
+                _a.label = 1;
             case 1:
-                _b.trys.push([1, 5, , 6]);
-                refreshToken = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.refreshToken;
-                if (!refreshToken) return [3 /*break*/, 3];
+                _a.trys.push([1, 5, , 6]);
+                if (!username) return [3 /*break*/, 3];
                 return [4 /*yield*/, prisma.users.findFirst({
                         where: {
-                            refreshToken: refreshToken,
+                            username: username,
                         },
                     })];
             case 2:
-                foundUser_1 = _b.sent();
+                foundUser_1 = _a.sent();
                 // console.log(foundUser);
                 // setTimeout(greeting, 3000);
                 if (!foundUser_1) {
@@ -367,6 +366,7 @@ var tokenRefresh = function (req, res) { return __awaiter(void 0, void 0, void 0
                             .json("user not found, may be refresh token is not valid")];
                 }
                 else {
+                    refreshToken = (foundUser_1 === null || foundUser_1 === void 0 ? void 0 : foundUser_1.refreshToken) || "";
                     jsonwebtoken_1.default.verify(refreshToken, process.env.TOKEN_SECRET || "", {
                         ignoreExpiration: true,
                     }, function (error, decoded) { return __awaiter(void 0, void 0, void 0, function () {
@@ -408,7 +408,7 @@ var tokenRefresh = function (req, res) { return __awaiter(void 0, void 0, void 0
                 })];
             case 4: return [3 /*break*/, 6];
             case 5:
-                error_4 = _b.sent();
+                error_4 = _a.sent();
                 return [2 /*return*/, res.status(404).json({
                         success: false,
                         message: (error_4 === null || error_4 === void 0 ? void 0 : error_4.name) ? error_4 === null || error_4 === void 0 ? void 0 : error_4.name : "Token refresh failed",
