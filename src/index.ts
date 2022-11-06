@@ -16,6 +16,26 @@ dotenv.config();
 
 app.use(cookieParser());
 
+const allowCors = (fn: any) => async (req: Request, res: Response) => {
+  res.setHeader("Access-Control-Allow-Credentials", "*");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  // another common pattern
+  // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET,OPTIONS,PATCH,DELETE,POST,PUT"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
+  );
+  if (req.method === "OPTIONS") {
+    res.status(200).end();
+    return;
+  }
+  return await fn(req, res);
+};
+
 const corsConfig = {
   credentials: true,
   origin: [
@@ -23,23 +43,28 @@ const corsConfig = {
     "http://localhost:3001",
     "http://192.168.4.89:3000",
     "http://192.168.1.8:3000",
+    "https://kieu-nhu.vercel.app",
   ],
   // origin: true,
 };
-app.use(cors(corsConfig));
-app.options("*", cors(corsConfig));
+app.use(allowCors);
 app.use(express.json());
-// app.use(cors({ origin: true, credentials: true }));
 
+app.use(cors(corsConfig));
+app.use("*", cors(corsConfig));
 app.use(express.static("./src/static"));
 
 // verify logged in user
 app.use("*", tokenVerification);
-app.use(morgan("dev"));
+// app.use(morgan("dev"));
 // routes
 app.use("/", indexRouter);
+// app.use("/", (req, res, next) => {
+//   res.setHeader("Access-Control-Allow-Origin", "*");
+//   next();
+// });
 
-app.use("/api/auth", authenticationRouter);
+app.use("/api/auth", cors(corsConfig), authenticationRouter);
 app.use("/api/user", userRouter);
 app.use("/api/service", serviceRouter);
 app.use("/api/service-group", serviceGroupRouter);

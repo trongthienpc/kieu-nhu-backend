@@ -1,11 +1,6 @@
 import express, { Request, Response } from "express";
-import prisma from "../../lib/prisma";
-import jwt from "jsonwebtoken";
 import {
   checkUserExist,
-  checkUsernameExist,
-  generateAccessToken,
-  generateRefreshToken,
   tokenRefresh,
   userLogin,
   userRegister,
@@ -29,13 +24,15 @@ authenticationRouter.post(
   async (req: Request, res: Response, next: any) => {
     let body = req.body;
     let response = await userLogin(body);
-    if (response.success)
+    if (response.success) {
+      console.log(response);
       res.cookie("refreshToken", response.refreshToken, {
         httpOnly: true,
         secure: false, // change this to true if production
         sameSite: "strict",
         path: "/",
       });
+    }
     console.log(`Authentication.routes | login`);
     const { refreshToken, ...responseData } = response;
     return res.json({
