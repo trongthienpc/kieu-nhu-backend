@@ -278,7 +278,7 @@ exports.userLogin = userLogin;
 // @param user id
 var generateAccessToken = function (username) {
     return jsonwebtoken_1.default.sign({ username: username }, process.env.TOKEN_SECRET || "", {
-        expiresIn: "10s",
+        expiresIn: "3s",
     });
 };
 exports.generateAccessToken = generateAccessToken;
@@ -314,7 +314,6 @@ var tokenVerification = function (req, res, next) { return __awaiter(void 0, voi
                         });
                     }
                     else {
-                        console.log(decoded);
                         req.username = decoded === null || decoded === void 0 ? void 0 : decoded.username;
                         next();
                     }
@@ -339,83 +338,57 @@ var tokenVerification = function (req, res, next) { return __awaiter(void 0, voi
     });
 }); };
 exports.tokenVerification = tokenVerification;
+function sleep(ms) {
+    return new Promise(function (resolve) { return setTimeout(resolve, ms); });
+}
 // refresh token validity
-var tokenRefresh = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var username, foundUser_1, refreshToken, error_4;
+var tokenRefresh = function (refreshToken) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                username = req.body;
-                console.log("authentication.service | tokenRefresh | ".concat(req === null || req === void 0 ? void 0 : req.originalUrl));
-                _a.label = 1;
-            case 1:
-                _a.trys.push([1, 5, , 6]);
-                if (!username) return [3 /*break*/, 3];
-                return [4 /*yield*/, prisma.users.findFirst({
-                        where: {
-                            username: username,
-                        },
-                    })];
-            case 2:
-                foundUser_1 = _a.sent();
-                // console.log(foundUser);
-                // setTimeout(greeting, 3000);
-                if (!foundUser_1) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json("user not found, may be refresh token is not valid")];
-                }
-                else {
-                    refreshToken = (foundUser_1 === null || foundUser_1 === void 0 ? void 0 : foundUser_1.refreshToken) || "";
-                    jsonwebtoken_1.default.verify(refreshToken, process.env.TOKEN_SECRET || "", {
-                        ignoreExpiration: true,
-                    }, function (error, decoded) { return __awaiter(void 0, void 0, void 0, function () {
-                        var newAccessToken;
-                        return __generator(this, function (_a) {
-                            if (error) {
-                                return [2 /*return*/, res.status(401).json({
-                                        success: false,
-                                        message: (error === null || error === void 0 ? void 0 : error.name) ? error === null || error === void 0 ? void 0 : error.name : "Invalid token",
-                                        error: "Invalid token | ".concat(error === null || error === void 0 ? void 0 : error.message),
-                                    })];
-                            }
-                            else {
-                                // console.log(decoded);
-                                if (decoded === null || decoded === void 0 ? void 0 : decoded.username) {
-                                    newAccessToken = (0, exports.generateAccessToken)(foundUser_1 === null || foundUser_1 === void 0 ? void 0 : foundUser_1.username);
-                                    return [2 /*return*/, res.json({
-                                            success: true,
-                                            message: "Token refreshed successfully",
-                                            accessToken: newAccessToken,
-                                        })];
-                                }
-                                else {
-                                    return [2 /*return*/, res.status(401).json({
-                                            success: false,
-                                            message: (error === null || error === void 0 ? void 0 : error.name) ? error === null || error === void 0 ? void 0 : error.name : "Invalid Token",
-                                            error: "Invalid token | ".concat(error === null || error === void 0 ? void 0 : error.message),
-                                        })];
-                                }
-                            }
-                            return [2 /*return*/];
-                        });
-                    }); });
-                }
-                return [3 /*break*/, 4];
-            case 3: return [2 /*return*/, res.status(401).json({
-                    success: false,
-                    message: "Token not found or token not valid",
-                })];
-            case 4: return [3 /*break*/, 6];
-            case 5:
-                error_4 = _a.sent();
-                return [2 /*return*/, res.status(404).json({
-                        success: false,
-                        message: (error_4 === null || error_4 === void 0 ? void 0 : error_4.name) ? error_4 === null || error_4 === void 0 ? void 0 : error_4.name : "Token refresh failed",
-                        error: "Token refresh failed | ".concat(error_4 === null || error_4 === void 0 ? void 0 : error_4.message),
-                    })];
-            case 6: return [2 /*return*/];
+        console.log("authentication.service | tokenRefresh ");
+        try {
+            jsonwebtoken_1.default.verify(refreshToken, process.env.TOKEN_SECRET || "", {
+                ignoreExpiration: true,
+            }, function (error, decoded) { return __awaiter(void 0, void 0, void 0, function () {
+                var newAccessToken;
+                return __generator(this, function (_a) {
+                    if (error) {
+                        return [2 /*return*/, {
+                                success: false,
+                                message: (error === null || error === void 0 ? void 0 : error.name) ? error === null || error === void 0 ? void 0 : error.name : "Invalid token",
+                                error: "Invalid token | ".concat(error === null || error === void 0 ? void 0 : error.message),
+                            }];
+                    }
+                    else {
+                        console.log("decoded: ", decoded);
+                        if (decoded === null || decoded === void 0 ? void 0 : decoded.username) {
+                            newAccessToken = (0, exports.generateAccessToken)(decoded === null || decoded === void 0 ? void 0 : decoded.username);
+                            console.log(newAccessToken);
+                            return [2 /*return*/, {
+                                    success: true,
+                                    message: "Token refreshed successfully",
+                                    accessToken: newAccessToken,
+                                }];
+                        }
+                        else {
+                            return [2 /*return*/, {
+                                    success: false,
+                                    message: (error === null || error === void 0 ? void 0 : error.name) ? error === null || error === void 0 ? void 0 : error.name : "Invalid Token",
+                                    error: "Invalid token | ".concat(error === null || error === void 0 ? void 0 : error.message),
+                                }];
+                        }
+                    }
+                    return [2 /*return*/];
+                });
+            }); });
         }
+        catch (error) {
+            return [2 /*return*/, {
+                    success: false,
+                    message: (error === null || error === void 0 ? void 0 : error.name) ? error === null || error === void 0 ? void 0 : error.name : "Token refresh failed",
+                    error: "Token refresh failed | ".concat(error === null || error === void 0 ? void 0 : error.message),
+                }];
+        }
+        return [2 /*return*/];
     });
 }); };
 exports.tokenRefresh = tokenRefresh;

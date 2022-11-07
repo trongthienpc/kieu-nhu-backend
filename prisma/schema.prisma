@@ -88,3 +88,15 @@ model kpis {
   createdBy   String?
   updatedBy   String?
 }
+
+model customers {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  customerName String
+  phone        String?
+  status       Boolean?  @default(true)
+  staffId      String?
+  createdDate  DateTime? @default(now())
+  updatedDate  DateTime? @updatedAt
+  createdBy    String?
+  updatedBy    String?
+}
