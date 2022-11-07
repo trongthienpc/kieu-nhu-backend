@@ -50,6 +50,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+var user_service_1 = require("./../services/user.service");
 var express_1 = __importDefault(require("express"));
 var authentication_service_1 = require("../services/authentication.service");
 var authenticationRouter = express_1.default.Router();
@@ -78,15 +80,16 @@ authenticationRouter.post("/login", function (req, res, next) { return __awaiter
                 return [4 /*yield*/, (0, authentication_service_1.userLogin)(body)];
             case 1:
                 response = _a.sent();
+                console.log(response);
                 if (response.success) {
-                    console.log(response);
-                    res.status(200).cookie("refreshToken", response.refreshToken, {
-                        httpOnly: true,
-                        secure: true,
-                        sameSite: "strict",
-                        domain: process.env.NODE_ENV === "development" ? ".localhost" : ".vercel.com",
-                        path: "/",
-                    });
+                    // res.status(200).cookie("refreshToken", response.refreshToken, {
+                    //   httpOnly: true,
+                    //   secure: true, // change this to true if production
+                    //   sameSite: "strict",
+                    //   domain:
+                    //     process.env.NODE_ENV === "development" ? ".localhost" : ".vercel.com",
+                    //   path: "/",
+                    // });
                 }
                 console.log("Authentication.routes | login");
                 refreshToken = response.refreshToken, responseData = __rest(response, ["refreshToken"]);
@@ -115,7 +118,73 @@ authenticationRouter.get("/user-exist", function (req, res, next) { return __awa
     });
 }); });
 // refresh token
-authenticationRouter.post("/refresh", authentication_service_1.tokenRefresh);
+authenticationRouter.post("/refresh", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var username, user;
+    var _a, _b, _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
+            case 0:
+                console.log("authentication.routes | tokenRefresh | ".concat(req === null || req === void 0 ? void 0 : req.originalUrl));
+                username = (_a = req.body) === null || _a === void 0 ? void 0 : _a.username;
+                return [4 /*yield*/, (0, user_service_1.getUser)(username)];
+            case 1:
+                user = _d.sent();
+                if (!user) {
+                    res.status(404).json({
+                        success: false,
+                        message: "user not found, may be refresh token is not valid",
+                    });
+                }
+                else {
+                    console.log("r", (_b = user.data) === null || _b === void 0 ? void 0 : _b.refreshToken);
+                    try {
+                        jsonwebtoken_1.default.verify(((_c = user.data) === null || _c === void 0 ? void 0 : _c.refreshToken) || "", process.env.TOKEN_SECRET || "", {
+                            ignoreExpiration: true,
+                        }, function (error, decoded) { return __awaiter(void 0, void 0, void 0, function () {
+                            var newAccessToken;
+                            return __generator(this, function (_a) {
+                                if (error) {
+                                    return [2 /*return*/, {
+                                            success: false,
+                                            message: (error === null || error === void 0 ? void 0 : error.name) ? error === null || error === void 0 ? void 0 : error.name : "Invalid token",
+                                            error: "Invalid token | ".concat(error === null || error === void 0 ? void 0 : error.message),
+                                        }];
+                                }
+                                else {
+                                    console.log("decoded: ", decoded);
+                                    if (decoded === null || decoded === void 0 ? void 0 : decoded.username) {
+                                        newAccessToken = (0, authentication_service_1.generateAccessToken)(decoded === null || decoded === void 0 ? void 0 : decoded.username);
+                                        console.log(newAccessToken);
+                                        return [2 /*return*/, res.status(200).json({
+                                                success: true,
+                                                message: "Token refreshed successfully",
+                                                accessToken: newAccessToken,
+                                            })];
+                                    }
+                                    else {
+                                        return [2 /*return*/, res.status(401).json({
+                                                success: false,
+                                                message: (error === null || error === void 0 ? void 0 : error.name) ? error === null || error === void 0 ? void 0 : error.name : "Invalid Token",
+                                                error: "Invalid token | ".concat(error === null || error === void 0 ? void 0 : error.message),
+                                            })];
+                                    }
+                                }
+                                return [2 /*return*/];
+                            });
+                        }); });
+                    }
+                    catch (error) {
+                        return [2 /*return*/, res.status(501).json({
+                                success: false,
+                                message: (error === null || error === void 0 ? void 0 : error.name) ? error === null || error === void 0 ? void 0 : error.name : "Token refresh failed",
+                                error: "Token refresh failed | ".concat(error === null || error === void 0 ? void 0 : error.message),
+                            })];
+                    }
+                }
+                return [2 /*return*/];
+        }
+    });
+}); });
 // @route POST api/auth/logout
 // desc logout
 authenticationRouter.post("/logout", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {

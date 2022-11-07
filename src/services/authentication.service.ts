@@ -187,7 +187,7 @@ const userLogin = async (user: any) => {
 // @param user id
 export const generateAccessToken = (username: string) => {
   return jwt.sign({ username: username }, process.env.TOKEN_SECRET || "", {
-    expiresIn: "10s",
+    expiresIn: "3s",
   });
 };
 
@@ -225,7 +225,6 @@ const tokenVerification = async (req: any, res: Response, next: any) => {
               error: `Invalid token | ${error?.message}`,
             });
           } else {
-            console.log(decoded);
             req.username = decoded?.username;
             next();
           }
@@ -247,77 +246,53 @@ const tokenVerification = async (req: any, res: Response, next: any) => {
   }
 };
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 // refresh token validity
-const tokenRefresh = async (req: Request, res: Response) => {
-  const username = req.body;
-  console.log(`authentication.service | tokenRefresh | ${req?.originalUrl}`);
+const tokenRefresh = async (refreshToken: string) => {
+  console.log(`authentication.service | tokenRefresh `);
   try {
-    // let token = req?.headers["authorization"];
-    // take refresh token from user
-
-    // console.log(req);
-    if (username) {
-      // token = token.slice(7, token?.length);
-
-      const foundUser = await prisma.users.findFirst({
-        where: {
-          username: username,
-        },
-      });
-      // console.log(foundUser);
-      // setTimeout(greeting, 3000);
-      if (!foundUser) {
-        return res
-          .status(401)
-          .json("user not found, may be refresh token is not valid");
-      } else {
-        const refreshToken = foundUser?.refreshToken || "";
-        jwt.verify(
-          refreshToken,
-          process.env.TOKEN_SECRET || "",
-          {
-            ignoreExpiration: true,
-          },
-          async (error: any, decoded: any) => {
-            if (error) {
-              return res.status(401).json({
-                success: false,
-                message: error?.name ? error?.name : "Invalid token",
-                error: `Invalid token | ${error?.message}`,
-              });
-            } else {
-              // console.log(decoded);
-              if (decoded?.username) {
-                const newAccessToken = generateAccessToken(foundUser?.username);
-
-                return res.json({
-                  success: true,
-                  message: "Token refreshed successfully",
-                  accessToken: newAccessToken,
-                });
-              } else {
-                return res.status(401).json({
-                  success: false,
-                  message: error?.name ? error?.name : "Invalid Token",
-                  error: `Invalid token | ${error?.message}`,
-                });
-              }
-            }
+    jwt.verify(
+      refreshToken,
+      process.env.TOKEN_SECRET || "",
+      {
+        ignoreExpiration: true,
+      },
+      async (error: any, decoded: any) => {
+        if (error) {
+          return {
+            success: false,
+            message: error?.name ? error?.name : "Invalid token",
+            error: `Invalid token | ${error?.message}`,
+          };
+        } else {
+          console.log("decoded: ", decoded);
+          if (decoded?.username) {
+            const newAccessToken = generateAccessToken(decoded?.username);
+            console.log(newAccessToken);
+            return {
+              success: true,
+              message: "Token refreshed successfully",
+              accessToken: newAccessToken,
+            };
+          } else {
+            return {
+              success: false,
+              message: error?.name ? error?.name : "Invalid Token",
+              error: `Invalid token | ${error?.message}`,
+            };
           }
-        );
+        }
       }
-    } else {
-      return res.status(401).json({
-        success: false,
-        message: "Token not found or token not valid",
-      });
-    }
+    );
   } catch (error: any) {
-    return res.status(404).json({
+    return {
       success: false,
       message: error?.name ? error?.name : "Token refresh failed",
       error: `Token refresh failed | ${error?.message}`,
-    });
+    };
   }
 };
 
