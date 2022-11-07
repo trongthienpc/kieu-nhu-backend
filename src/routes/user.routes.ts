@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
-import { getAllServiceGroups } from "../services/serviceGroup.service";
 import { getAllUsers, getUser } from "../services/user.service";
+
 const userRouter = express.Router();
 
 // get all users
@@ -28,6 +28,11 @@ userRouter.get("/get-user", async (req: Request, res: Response) => {
   const username = req.params?.username || "";
   const response = await getUser(username);
   res.json(response);
+});
+
+// reset password by user name
+userRouter.post("/reset-password", async (req: Request, res: Response) => {
+  const { username } = req.body;
 });
 
 export default userRouter;

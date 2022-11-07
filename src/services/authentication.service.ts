@@ -8,6 +8,7 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
+import { decode } from "punycode";
 // import prisma from "../../lib/prisma";
 
 const prisma = new PrismaClient();
@@ -332,7 +333,35 @@ const checkAdminRole = async (username: string) => {
   return isAdmin;
 };
 
+// check admin role by token
+const checkAdminRoleByToken = async (token: string) => {
+  // decoded the token
+  jwt.verify(
+    token,
+    process.env.TOKEN_SECRET || "",
+    async (error: any, decoded: any) => {
+      if (error) {
+        return {
+          success: false,
+          message: error?.message
+            ? error?.message
+            : "Oops! Something went wrong!",
+          error: `Check admin role By token failed | ${error?.message}`,
+        };
+      } else {
+        const username = decoded.username;
+        const user = await prisma.users.findUnique({
+          where: { username: username },
+        });
+        const isAdmin = user?.admin;
+        return isAdmin ? true : false;
+      }
+    }
+  );
+};
+
 export {
+  checkAdminRoleByToken,
   tokenRefresh,
   tokenVerification,
   userRegister,
