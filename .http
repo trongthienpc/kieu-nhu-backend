@@ -27,3 +27,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InBjL
 {
     "serviceName": "Skin care"  
 }
+
+
+###
+GET http://localhost:8080/api/transaction/analyze?fromDate=2022-10-02&toDate=2022-10-10&username=pc-0111
+
+###
+GET http://localhost:8080/api/transaction/statistics
+

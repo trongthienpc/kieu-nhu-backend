@@ -68,15 +68,15 @@ const checkEmailExist = async (query: string) => {
 const userRegister = async (user: any) => {
   try {
     console.log(`Authentication | user registration`);
-    if (!user?.username || !user?.password)
+    if (!user?.username || !user?.password || !user?.fullName)
       return {
         success: false,
         message: "Please fill up all the required information",
       };
 
     // check email already exist
-    const emailStatus = await checkEmailExist(user?.email);
-    if (emailStatus != true) return { success: false, message: EMAIL_EXIST };
+    // const emailStatus = await checkEmailExist(user?.email);
+    // if (emailStatus != true) return { success: false, message: EMAIL_EXIST };
 
     // check username already exist
     const usernameStatus = await checkUsernameExist(user?.username);
@@ -85,11 +85,13 @@ const userRegister = async (user: any) => {
 
     const passwordHash = await bcrypt.hash(user?.password, 10);
     let userObject = {
-      username: user?.username?.toLowerCase(),
+      username: user?.username?.toLowerCase().trim(),
       password: passwordHash,
-      email: user?.email?.toLowerCase(),
-      name: user?.name?.toLowerCase(),
+      email: user?.email?.toLowerCase().trim(),
+      name: user?.fullName?.toLowerCase().trim(),
       admin: user?.admin || false,
+      createdDate: new Date(),
+      createdBy: user?.createdBy,
     };
 
     // save to database
@@ -109,7 +111,7 @@ const userRegister = async (user: any) => {
       return {
         success: true,
         message: REGISTERED_SUCCESS,
-        data: accessToken,
+        data: newUser,
       };
     } else {
       return { success: false, message: REGISTERED_FAILED };

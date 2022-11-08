@@ -1,7 +1,9 @@
 import express, { Request, Response } from "express";
+import { stringify } from "querystring";
 import { checkAdminRole } from "../services/authentication.service";
 import {
   analyzeTransaction,
+  analyzeTransactionByUserNameAndDate,
   createTransaction,
   deleteTransaction,
   getAllTransactions,
@@ -27,12 +29,13 @@ transactionRouter.get("/", async (req: any, res) => {
   else result = await getAllTransactionsByUsername(req.username, search);
 
   if (result && result.data?.length > 0) {
+    console.log(result.data.length);
     let totalPages = Math.ceil(result.data.length / pageSize);
     if (page > totalPages) page = totalPages;
     console.log(totalPages);
     return res.status(200).json({
       success: true,
-      message: "Get services successfully!",
+      message: "Get transactions successfully!",
       totalTransactions: result.data?.length,
       page: page,
       totalPages: totalPages,
@@ -46,6 +49,30 @@ transactionRouter.get("/", async (req: any, res) => {
       success: true,
       message: "Can not found any transaction!",
       transactions: [],
+    });
+  }
+});
+
+// analyze transactions
+transactionRouter.get("/analyze", async (req, res) => {
+  const fromDate = req.query?.fromDate || undefined;
+  const toDate = req.query?.toDate || undefined;
+  const username = req.query?.username ?? "";
+
+  if (fromDate && toDate && username) {
+    let f = new Date(fromDate.toString());
+    let t = new Date(toDate.toString());
+    const result = await analyzeTransactionByUserNameAndDate(
+      f,
+      t,
+      username.toString()
+    );
+    res.status(200).json(result);
+  } else {
+    res.status(501).json({
+      success: false,
+      message: "No data to filter!",
+      data: undefined,
     });
   }
 });

@@ -11,42 +11,79 @@ const prisma = new PrismaClient();
 
 // get all transactions
 const getAllTransactions = async (search: string) => {
+  let res: any;
   try {
-    const res = await prisma.transactions.findMany({
-      where: {
-        AND: {
-          status: true,
-          OR: [
-            {
-              fullName: {
-                contains: search,
+    // check search params type
+    if (parseInt(search)) {
+      res = await prisma.transactions.findMany({
+        where: {
+          AND: {
+            status: true,
+            OR: [
+              {
+                price: {
+                  gte: parseInt(search),
+                },
               },
-            },
-            {
-              customerName: {
-                contains: search,
+              {
+                quantity: {
+                  gte: parseInt(search),
+                },
               },
-            },
-            {
-              serviceName: {
-                contains: search,
+              {
+                discount: {
+                  gte: parseInt(search),
+                },
               },
-            },
-            {
-              price: {
-                gte: parseInt(search) || 0,
+              {
+                cash: {
+                  gte: parseInt(search),
+                },
               },
-            },
-          ],
+              {
+                debt: {
+                  gte: parseInt(search),
+                },
+              },
+            ],
+          },
         },
-      },
-    });
-
-    return {
-      success: true,
-      message: GET_SUCCESS,
-      data: res,
-    };
+      });
+    } else {
+      res = await prisma.transactions.findMany({
+        where: {
+          AND: {
+            status: true,
+            OR: [
+              {
+                fullName: {
+                  contains: search,
+                  mode: "insensitive",
+                },
+              },
+              {
+                customerName: {
+                  contains: search,
+                  mode: "insensitive",
+                },
+              },
+              {
+                serviceName: {
+                  contains: search,
+                  mode: "insensitive",
+                },
+              },
+            ],
+          },
+        },
+      });
+    }
+    if (res)
+      return {
+        success: true,
+        message: GET_SUCCESS,
+        data: res,
+      };
   } catch (error: any) {
     console.log(error?.message);
     return {
@@ -178,7 +215,8 @@ const deleteTransaction = async (data: any) => {
   }
 };
 
-// analyze transactions by user
+// analyze transactions by a period time
+// @params fromDate: Date, toDate: Date
 const analyzeTransaction = async (fromDate: Date, toDate: Date) => {
   console.log(fromDate, toDate);
   const lstUsers = await prisma.users.findMany({});
@@ -223,6 +261,61 @@ const analyzeTransaction = async (fromDate: Date, toDate: Date) => {
     };
   }
 };
+
+// analyze transactions by period time, username
+// @params fromDate: Date, toDate: Date, username: string
+// @desc analyze transactions of a user in a period time
+const analyzeTransactionByUserNameAndDate = async (
+  fromDate: Date,
+  toDate: Date,
+  username: string
+) => {
+  console.log("analyzeTransactionByUserNameAndDate");
+  console.log(fromDate, toDate, username);
+  const lstUsers = await prisma.users.findMany({});
+  try {
+    const res = await prisma.transactions.groupBy({
+      by: ["username"],
+      _sum: {
+        price: true,
+        quantity: true,
+        discount: true,
+        cash: true,
+        debt: true,
+      },
+      where: {
+        AND: {
+          status: true,
+          transactionDate: {
+            gte: fromDate,
+            lte: toDate,
+          },
+          username: username,
+        },
+      },
+    });
+
+    const newRes = res?.map((r) => {
+      let user = lstUsers.filter((u) => u.username === r.username);
+      return { ...r, fullName: user[0]?.name };
+    });
+    // console.log(newRes);
+
+    return {
+      success: true,
+      message: GET_SUCCESS,
+      data: newRes,
+    };
+  } catch (error: any) {
+    console.log(error?.message);
+    return {
+      success: false,
+      message: ERROR,
+      data: error?.message,
+    };
+  }
+};
+
 export {
   getAllTransactions,
   getAllTransactionsByUsername,
@@ -231,4 +324,5 @@ export {
   updateTransaction,
   deleteTransaction,
   analyzeTransaction,
+  analyzeTransactionByUserNameAndDate,
 };

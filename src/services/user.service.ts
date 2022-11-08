@@ -1,18 +1,12 @@
 import bcrypt from "bcrypt";
-// get user
-
 import { PrismaClient } from "@prisma/client";
-import {
-  DELETE_SUCCESS,
-  ERROR,
-  POST_SUCCESS,
-  UPDATE_SUCCESS,
-} from "../configs/constants";
 
 const prisma = new PrismaClient();
+
 export const getUser = async (username: any) => {
+  let response: any;
   try {
-    const response = await prisma.users.findFirst({
+    response = await prisma.users.findFirst({
       where: {
         username: username,
       },
@@ -42,8 +36,9 @@ export const getUser = async (username: any) => {
 };
 
 export const getAllUsers = async () => {
+  let response: any;
   try {
-    const response = await prisma.users.findMany({});
+    response = await prisma.users.findMany({});
     if (response) {
       return {
         success: true,
