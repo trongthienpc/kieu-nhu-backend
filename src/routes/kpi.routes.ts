@@ -16,6 +16,7 @@ var kpiRouter = express.Router();
 // get all kpis
 kpiRouter.get("/", async (req: any, res) => {
   // page configs
+  console.log(req.username);
   const isAdmin = await checkAdminRole(req.username);
   let result;
   if (isAdmin) result = await getAllKpis();

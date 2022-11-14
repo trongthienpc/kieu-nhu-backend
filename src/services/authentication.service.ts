@@ -8,7 +8,6 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
-import { decode } from "punycode";
 // import prisma from "../../lib/prisma";
 
 const prisma = new PrismaClient();
@@ -300,6 +299,7 @@ const tokenRefresh = async (refreshToken: string) => {
 };
 
 const checkAdminRole = async (username: string) => {
+  console.log([username]);
   let isAdmin = false;
   const user = await prisma.users.findFirst({
     where: {

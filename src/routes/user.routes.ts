@@ -14,7 +14,7 @@ userRouter.get("/", async (req, res) => {
 
   let result;
   result = await getAllUsers();
-  console.log(result);
+  // console.log(result);
   if (result) {
     let totalPages = Math.ceil(result.data.length / pageSize);
     if (page > totalPages) page = totalPages;
@@ -48,9 +48,9 @@ userRouter.get("/get-user", async (req: Request, res: Response) => {
 // reset password by user name
 // @param username:  string
 userRouter.post("/reset-password", async (req: Request, res: Response) => {
-  const { username } = req.body;
+  const { username, updatedBy } = req.body;
   if (username) {
-    const response = await resetPassword(username);
+    const response = await resetPassword(username, updatedBy);
     res.status(202).json(response);
   } else {
     res.status(404).json({

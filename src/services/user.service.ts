@@ -63,7 +63,7 @@ export const getAllUsers = async () => {
 };
 
 // reset password
-export const resetPassword = async (username: string) => {
+export const resetPassword = async (username: string, updatedBy: string) => {
   if (username) {
     const user = await prisma.users.findUnique({
       where: {
@@ -79,12 +79,14 @@ export const resetPassword = async (username: string) => {
         },
         data: {
           password: passwordHash,
+          updatedBy: updatedBy,
         },
       });
       if (result) {
         return {
           success: true,
           message: "Password reset successfully!",
+          data: result,
         };
       }
     }
